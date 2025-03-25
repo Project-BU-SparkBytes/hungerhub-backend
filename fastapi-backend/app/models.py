@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from app.database import Base
+from app.auth import get_password_hash
 
 # defines the python class that will be used for the users table
 class User(Base):
@@ -12,6 +13,11 @@ class User(Base):
     # user credentials: email and password -- will need to hash it in the future (just keep it the same for now)
     email = Column(String, unique=True, index=True)
     password = Column(String)
+
+
+    def set_password(self, password: str):
+        """Hash and set password"""
+        self.password = get_password_hash(password)
 
 '''
 SQLAlchemy will create a corresponding table like this:

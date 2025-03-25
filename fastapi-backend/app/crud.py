@@ -6,6 +6,8 @@ from app import models, schemas
 
 def create_user(db: Session, user: schemas.CreateUser):
     db_user = models.User(email=user.email, password=user.password)
+    #setpassword
+    db_user.set_password(user.password)
     # add this new user to the user table
     db.add(db_user)
     # save user to database

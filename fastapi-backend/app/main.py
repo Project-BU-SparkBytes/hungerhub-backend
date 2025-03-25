@@ -1,9 +1,16 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db, Base, engine
 from app.models import User, Event
 from app.schemas import CreateUser, UserResponse, CreateEvent, EventResponse
 from app.crud import create_user, get_email, get_event, create_event
+from app import schemas
+from datetime import timedelta
+from app.auth import (
+    authenticate_user,
+    create_access_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES
+)
 
 # file that defines the API endpoints to login and sign-up a user
 
@@ -36,7 +43,24 @@ def signup(user: CreateUser, db: Session = Depends(get_db)):
 
 
 # api endpoint to login an existing user
-@app.post("/login")
+@app.post("/login", response_model=schemas.Token)
+def login(user: schemas.CreateUser, db: Session = Depends(get_db)):
+    """Authenticate user and return JWT token"""
+    authenticated_user = authenticate_user(db, user.email, user.password)
+    if not authenticated_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": authenticated_user.email},
+        expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+    
+"""@app.post("/login")
 # need to interact with database (Depends(get_db))
 def login(user: CreateUser, db: Session = Depends(get_db)):
     if not user.email or not user.password:
@@ -50,7 +74,7 @@ def login(user: CreateUser, db: Session = Depends(get_db)):
             status_code=400, detail="Incorrect credentials. Please try again.")
 
     else:
-        return {"message": "Login successful"}
+        return {"message": "Login successful"}"""
 
 # returns all users found in the user database
 @app.get("/users")
