@@ -8,3 +8,4 @@ __pycache__/
 *.pyd
 
 /fastapi-backend/app/__pycache__
+.vercel
