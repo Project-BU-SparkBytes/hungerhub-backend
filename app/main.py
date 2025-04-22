@@ -10,6 +10,8 @@ from app.crud import create_user, get_event, create_event
 import re
 from app.auth import verify_pwd, create_access_token, hash_pwd
 from app.dependencies import get_current_user
+from app.utils.email import send_email
+
 
 # intialize the fastapi app
 app = FastAPI()
@@ -163,6 +165,25 @@ def event_creation(event: CreateEvent, db: Session = Depends(get_db)):
     else:
         # create a new event with these attributes in this db
         new_event = create_event(db, event)
+        users_to_notify = db.query(User).filter(User.notifications == True).all()
+        subject = f"🎉 New Event Posted: {event.name}"
+        content = f"""
+        Hi Spark! Bytes user!
+
+        A new event has just been posted on Spark!Bytes:
+
+        🍽️  {event.name}
+        📍  {event.location}
+        🗓️  {event.date} at {event.time}
+
+        Description:
+        {event.description}
+
+        Log in to learn more at https://hungerhub-frontend-nu.vercel.app/events!
+        """
+        for user in users_to_notify:
+            send_email(user.email, subject, content)
+
         return new_event
     
 @app.get("/profile", response_model=UserResponse)
