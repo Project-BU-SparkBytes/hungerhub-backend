@@ -17,7 +17,10 @@ app = FastAPI()
 # allow requests from the frontend to the endpoints
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # frontend origin
+    allow_origins=[
+        "http://localhost:3000", # frontend origin
+        "https://hungerhub-frontend-nu.vercel.app",  # production frontend URL on Vercel
+        ],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
