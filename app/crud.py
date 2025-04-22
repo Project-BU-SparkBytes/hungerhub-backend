@@ -17,7 +17,7 @@ def create_user(db: Session, user: schemas.CreateUser):
     hashed_pwd = hash_pwd(user.password)
 
     # create a new instance of a user with the hashed password
-    db_user = models.User(email=user.email, password=hashed_pwd)
+    db_user = models.User(email=user.email, password=hashed_pwd, first_name=user.first_name, last_name=user.last_name, role=user.role, notifications=user.notifications)
 
     # add this new user to the user table
     db.add(db_user)
@@ -38,7 +38,7 @@ def create_event(db: Session, event: schemas.CreateEvent):
     Returns:
         - db_event: Event object representing the newly created event
     '''
-    db_event = models.Event(name=event.name, description=event.description, location=event.location, date=event.date, time=event.time)
+    db_event = models.Event(name=event.name, description=event.description, location=event.location, date=event.date, time=event.time, food_available=event.food_available)
     # add this new event to the corresponding table
     db.add(db_event)
     # save event to database
