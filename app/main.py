@@ -45,9 +45,9 @@ def signup(user: CreateUser, db: Session = Depends(get_db)):
         - new_user: UserResponse object containing the newly created user's information 
     '''
     # require the user to provide an email, password, and name
-    if not user.email or not user.password or not user.first_name or not user.last_name:
+    if not user.email or not user.password or not user.first_name or not user.last_name or not user.role:
         raise HTTPException(
-            status_code=422, detail="Email, password, and name are required.")
+            status_code=422, detail="Email, password, and name, role are required.")
     
     # check if the email contains @ symbol
     if '@' not in user.email:
@@ -75,7 +75,7 @@ def signup(user: CreateUser, db: Session = Depends(get_db)):
         hashed_password = hash_pwd(user.password)
 
         # create user model and save
-        new_user = User(email=user.email, password=hashed_password, first_name=user.first_name, last_name=user.last_name)
+        new_user = User(email=user.email, password=hashed_password, first_name=user.first_name, last_name=user.last_name, role=user.role, notifications=user.notifications)
         # add this new user to the corresponding table
         db.add(new_user)
         # save user to database
@@ -150,9 +150,9 @@ def event_creation(event: CreateEvent, db: Session = Depends(get_db)):
         - new_event: EventResponse object containing the newly created event's information (name, description, location, date, and time)
     '''
     # require the user to provide a name, description, location, date, and time
-    if not event.name or not event.description or not event.location or not event.date or not event.time:
+    if not event.name or not event.description or not event.location or not event.date or not event.time or not event.food_available:
         raise HTTPException(
-            status_code=422, detail="All fields are required (name, location, date, and time).")
+            status_code=422, detail="All fields are required (name, location, date, time, and food availability).")
     
     # check if this event is already in the database
     existing_event = get_event(db, event.name)

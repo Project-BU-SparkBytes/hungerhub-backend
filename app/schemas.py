@@ -1,4 +1,12 @@
 from pydantic import BaseModel
+from pydantic import BaseModel
+from enum import Enum
+
+# limits the user roles to three options: student, alumni, and faculty
+class UserRole(str, Enum):
+    student = "student"
+    alumni = "alumni"
+    faculty = "faculty"
 
 # requests validation on creating a new user (requiring an email and password)
 class CreateUser(BaseModel):
@@ -6,6 +14,8 @@ class CreateUser(BaseModel):
     password: str
     first_name: str
     last_name: str
+    role: UserRole = UserRole.student  # default role is student
+    notifications: bool = False  # default value for notifications is False
 
 # used for response formatting when returning user data (excluding the password)
 class UserResponse(BaseModel):
@@ -13,6 +23,7 @@ class UserResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
+    role: UserRole
 
     class Config:
         # allows to work with SQLAlchemy object relational models
@@ -25,6 +36,7 @@ class CreateEvent(BaseModel):
     location: str
     date: str
     time: str
+    food_available: str
 
 # used for response formatting when returning event data
 class EventResponse(BaseModel):
