@@ -16,10 +16,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Navigate to the backend directory 
-      - name: Change to backend directory
-        run: cd fastapi-backend  
-
       # Set up Python for the backend
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -29,7 +25,6 @@ jobs:
       # Install backend dependencies
       - name: Install dependencies
         run: |
-          cd fastapi-backend  
           python -m pip install --upgrade pip
           pip install -r requirements.txt  
 
