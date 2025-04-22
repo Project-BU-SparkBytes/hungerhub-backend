@@ -1,6 +1,6 @@
 ﻿# 🚀 FastAPI Backend with Docker & PostgreSQL
 
- This is a **FastAPI backend** for Spark! Bytes that provides **user authentication (signup & login)** and **PostgreSQL** as the database (hosted on Railway).
+ This is a **FastAPI** backend for Spark!Bytes that provides user authentication (signup & login) through **python-jose**, email notifications through **Mailgun**, and **PostgreSQL** as the database (hosted on Railway).
 
 ---
 
@@ -57,8 +57,8 @@ FastAPI's documentation is available at: http://127.0.0.1:8000/docs  (allows us 
 - /signup will return the user's registered email and ID key on success.
 - /login will return an authentication token for that specific user.
 - /create-event will create a new event in the events database table with the specified credentials.
-- /profile will return the current logged-in, authenticated user's credentials (this is a protected route)
-- Other error messages are provided for testing.
+- /profile will return the current logged-in, authenticated user's credentials (this is a protected route).
+- /events will return all created events in the database.
 
 
 
