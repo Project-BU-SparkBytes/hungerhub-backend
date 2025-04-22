@@ -3,7 +3,7 @@ name: Deploy Backend to Vercel on Merge
 on:
   push:
     branches:
-      - main  # This triggers the workflow when code is merged into the 'main' branch
+      - main  # this triggers the workflow when code is merged into the 'main' branch
 
 jobs:
   build_and_deploy:
