@@ -11,10 +11,20 @@ import re
 from app.auth import verify_pwd, create_access_token, hash_pwd
 from app.dependencies import get_current_user
 from app.utils.email import send_email
+from app.utils.event_cleanup import delete_old_events
+import asyncio
+from datetime import datetime, timezone
+from contextlib import asynccontextmanager
 
+# add the lifespan function to the FastAPI app
+# to run the delete_old_events() function in the background when the app starts
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    asyncio.create_task(delete_old_events())
+    yield
 
 # intialize the fastapi app
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # allow requests from the frontend to the endpoints
 app.add_middleware(
@@ -56,6 +66,16 @@ def signup(user: CreateUser, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=422, detail="Invalid email address. Please provide a valid email address.")
     
+    # check if the email is a valid email address format (ends in @bu.edu)
+    if not user.email.lower().endswith('@bu.edu'):
+        raise HTTPException(
+            status_code=422, detail="Only BU email addresses are allowed. Please use your @bu.edu email.")
+    
+    # ensure the user's role is one of the three options: student, alumni, or faculty
+    if user.role.lower() not in ["student", "alumni", "faculty"]:
+        raise HTTPException(
+            status_code=422, detail="Invalid role. Must be one of: student, alumni, faculty.")
+        
     # check if the length of the password is at least 8 characters
     if len(user.password) < 8:
         raise HTTPException(
@@ -145,17 +165,39 @@ def event_creation(event: CreateEvent, db: Session = Depends(get_db)):
     If the event does not exist, it creates a new event with the provided attributes and returns the event response.
     
     Inputs:
-        - event: CreateEvent object containing name, description, location, date, and time
+        - event: CreateEvent object containing name, description, location, date, time, student/alumni/faculty indicator, and food availability
         - db: Database session
         
     Returns:    
         - new_event: EventResponse object containing the newly created event's information (name, description, location, date, and time)
     '''
     # require the user to provide a name, description, location, date, and time
-    if not event.name or not event.description or not event.location or not event.date or not event.time or not event.food_available:
+    if not event.name or not event.description or not event.location or not event.date or not event.time or not event.food_available or not event.student_alumni_prof:
         raise HTTPException(
-            status_code=422, detail="All fields are required (name, location, date, time, and food availability).")
+            status_code=422, detail="All fields are required (name, location, date, time, student/alumni/prof indicator, and food availability).")
     
+    # ensure the event's student/alumni/faculty field is one of the three options
+    if event.student_alumni_prof.lower() not in ["student", "alumni", "faculty"]:
+        raise HTTPException(
+            status_code=422, detail="Invalid value for student/alumni/faculty. Must be one of: student, alumni, faculty.")
+    try:
+        # parse the date string (since we don't have a strict date object in the schema)
+        # check if the date is in the correct format (YYYY-MM-DD)
+        event_date = datetime.strptime(event.date, "%Y-%m-%d").date()
+
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Invalid date format. Please use YYYY-MM-DD.")
+
+    # get the current date in UTC timezone
+    today = datetime.now(timezone.utc).date()
+    # check if the date is in the past (compared to today's date)
+    # throw an error if it is
+    if event_date < today:
+        raise HTTPException(
+            status_code=400, 
+            detail="Event date cannot be in the past."
+        )
+        
     # check if this event is already in the database
     existing_event = get_event(db, event.name)
     if existing_event:
@@ -165,7 +207,7 @@ def event_creation(event: CreateEvent, db: Session = Depends(get_db)):
     else:
         # create a new event with these attributes in this db
         new_event = create_event(db, event)
-        users_to_notify = db.query(User).filter(User.notifications == True).all()
+        users_to_notify = db.query(User).filter(User.notifications == True, User.role == new_event.student_alumni_prof).all()
         subject = f"🎉 New Event Posted: {event.name}"
         content = f"""
         Hi Spark! Bytes user!
@@ -178,6 +220,9 @@ def event_creation(event: CreateEvent, db: Session = Depends(get_db)):
 
         Description:
         {event.description}
+
+        This event is for {event.student_alumni_prof} only.
+        Food available: {event.food_available}
 
         Log in to learn more at https://hungerhub-frontend-nu.vercel.app/events!
         """
@@ -256,6 +301,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
     db.delete(event)
     # commit to the database
     db.commit()
+
 
 def custom_openapi():
     '''

@@ -29,13 +29,14 @@ class UserResponse(BaseModel):
         # allows to work with SQLAlchemy object relational models
         orm_mode = True
 
-# requests validation on creating a new event (requiring a name, description, location, date, and time)
+# requests validation on creating a new event (requiring a name, description, location, date, time, student/alumni/faculty, and food availability)
 class CreateEvent(BaseModel):
     name: str
     description: str
     location: str
     date: str
     time: str
+    student_alumni_prof: str  # indicates if the event is for students, alumni, or faculty
     food_available: str
 
 # used for response formatting when returning event data
