@@ -53,6 +53,7 @@ class Event(Base):
     location = Column(String, index=True)
     date = Column(String, index=True)
     time = Column(String, index=True)
+    student_alumni_prof= Column(String, index=True)
     food_available = Column(String, index=True)
 
 
@@ -66,6 +67,7 @@ CREATE TABLE events (
     location VARCHAR,
     date VARCHAR,
     time VARCHAR,
+    student_alumni_prof VARCHAR,
     food_available VARCHAR
 );
 

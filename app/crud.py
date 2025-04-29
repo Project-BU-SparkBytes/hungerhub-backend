@@ -33,12 +33,12 @@ def create_event(db: Session, event: schemas.CreateEvent):
     
     Inputs: 
         - db: Database session
-        - event: CreateEvent object containing event details (name, description, location, date, time)
+        - event: CreateEvent object containing event details (name, description, location, date, time, student/alumni/faculty, food availability)
     
     Returns:
         - db_event: Event object representing the newly created event
     '''
-    db_event = models.Event(name=event.name, description=event.description, location=event.location, date=event.date, time=event.time, food_available=event.food_available)
+    db_event = models.Event(name=event.name, description=event.description, location=event.location, date=event.date, time=event.time, student_alumni_prof=event.student_alumni_prof, food_available=event.food_available)
     # add this new event to the corresponding table
     db.add(db_event)
     # save event to database
